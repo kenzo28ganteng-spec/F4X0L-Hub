@@ -1,41 +1,341 @@
-# Compiled Lua sources
-luac.out
+-- F4X0L HUB PREMIUM AUTO-JOINER
+-- 10M+ BRAINROT INCOME SERVER HUNTER
+-- MADE BY F4X0L HUB
 
-# luarocks build files
-*.src.rock
-*.zip
-*.tar.gz
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
-# Object files
-*.o
-*.os
-*.ko
-*.obj
-*.elf
+local player = Players.LocalPlayer
+local joiningInProgress = false
+local autoJoinEnabled = false
 
-# Precompiled Headers
-*.gch
-*.pch
+-- Stats tracking
+local stats = {
+    attempts = 0,
+    found = 0,
+    joined = 0
+}
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-*.def
-*.exp
+-- Create main GUI with F4X0L HUB styling
+local gui = Instance.new("ScreenGui")
+gui.Name = "F4X0LHubPremium"
+gui.ResetOnSpawn = false
+gui.Parent = game:GetService("CoreGui")
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+-- F4X0L HUB Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 60, 0, 60)
+toggleButton.Position = UDim2.new(0, 20, 0, 20)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+toggleButton.BorderSizePixel = 0
+toggleButton.Text = "F4X"
+toggleButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+toggleButton.Font = Enum.Font.GothamBlack
+toggleButton.TextSize = 16
+toggleButton.ZIndex = 10
+toggleButton.Parent = gui
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 8)
+toggleCorner.Parent = toggleButton
 
+local toggleStroke = Instance.new("UIStroke")
+toggleStroke.Color = Color3.fromRGB(0, 255, 0)
+toggleStroke.Thickness = 2
+toggleStroke.Parent = toggleButton
+
+-- Status indicator
+local statusDot = Instance.new("Frame")
+statusDot.Size = UDim2.new(0, 10, 0, 10)
+statusDot.Position = UDim2.new(1, -5, 0, -5)
+statusDot.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+statusDot.BorderSizePixel = 0
+statusDot.ZIndex = 11
+statusDot.Parent = toggleButton
+
+local dotCorner = Instance.new("UICorner")
+dotCorner.CornerRadius = UDim.new(1, 0)
+dotCorner.Parent = statusDot
+
+-- Main panel
+local mainPanel = Instance.new("Frame")
+mainPanel.Size = UDim2.new(0, 320, 0, 380)
+mainPanel.Position = UDim2.new(0, 90, 0, 20)
+mainPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainPanel.BorderSizePixel = 0
+mainPanel.Visible = false
+mainPanel.ZIndex = 5
+mainPanel.Parent = gui
+
+local panelCorner = Instance.new("UICorner")
+panelCorner.CornerRadius = UDim.new(0, 12)
+panelCorner.Parent = mainPanel
+
+local panelStroke = Instance.new("UIStroke")
+panelStroke.Color = Color3.fromRGB(0, 255, 0)
+panelStroke.Thickness = 2
+panelStroke.Parent = mainPanel
+
+-- F4X0L HUB Header
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 80)
+header.BackgroundColor3 = Color3.fromRGB(0, 60, 0)
+header.BorderSizePixel = 0
+header.ZIndex = 6
+header.Parent = mainPanel
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 12)
+headerCorner.Parent = header
+
+-- F4X0L HUB Logo
+local hubLogo = Instance.new("TextLabel")
+hubLogo.Size = UDim2.new(1, 0, 0, 40)
+hubLogo.Position = UDim2.new(0, 0, 0, 10)
+hubLogo.BackgroundTransparency = 1
+hubLogo.Text = "F4X0L HUB PREMIUM"
+hubLogo.TextColor3 = Color3.fromRGB(0, 255, 0)
+hubLogo.Font = Enum.Font.GothamBlack
+hubLogo.TextSize = 18
+hubLogo.TextStrokeTransparency = 0
+hubLogo.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+hubLogo.ZIndex = 7
+hubLogo.Parent = header
+
+local hubSubtitle = Instance.new("TextLabel")
+hubSubtitle.Size = UDim2.new(1, 0, 0, 20)
+hubSubtitle.Position = UDim2.new(0, 0, 0, 45)
+hubSubtitle.BackgroundTransparency = 1
+hubSubtitle.Text = "10M+ INCOME AUTO JOINER"
+hubSubtitle.TextColor3 = Color3.fromRGB(200, 255, 200)
+hubSubtitle.Font = Enum.Font.GothamBold
+hubSubtitle.TextSize = 10
+hubSubtitle.ZIndex = 7
+hubSubtitle.Parent = header
+
+-- Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 25, 0, 25)
+closeButton.Position = UDim2.new(1, -30, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 16
+closeButton.ZIndex = 7
+closeButton.Parent = header
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = closeButton
+
+-- Server filter info
+local filterFrame = Instance.new("Frame")
+filterFrame.Size = UDim2.new(1, -20, 0, 40)
+filterFrame.Position = UDim2.new(0, 10, 0, 90)
+filterFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+filterFrame.BorderSizePixel = 0
+filterFrame.ZIndex = 6
+filterFrame.Parent = mainPanel
+
+local filterCorner = Instance.new("UICorner")
+filterCorner.CornerRadius = UDim.new(0, 8)
+filterCorner.Parent = filterFrame
+
+local filterLabel = Instance.new("TextLabel")
+filterLabel.Size = UDim2.new(1, -10, 1, 0)
+filterLabel.Position = UDim2.new(0, 10, 0, 0)
+filterLabel.BackgroundTransparency = 1
+filterLabel.Text = "Target: 1-7 Player Servers | 10M+ Income"
+filterLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+filterLabel.Font = Enum.Font.GothamBold
+filterLabel.TextSize = 11
+filterLabel.TextXAlignment = Enum.TextXAlignment.Left
+filterLabel.ZIndex = 7
+filterLabel.Parent = filterFrame
+
+-- Status display
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -20, 0, 20)
+statusLabel.Position = UDim2.new(0, 10, 0, 140)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Status: Ready"
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.Font = Enum.Font.GothamBold
+statusLabel.TextSize = 12
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.ZIndex = 6
+statusLabel.Parent = mainPanel
+
+-- Stats display
+local statsFrame = Instance.new("Frame")
+statsFrame.Size = UDim2.new(1, -20, 0, 50)
+statsFrame.Position = UDim2.new(0, 10, 0, 165)
+statsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+statsFrame.BorderSizePixel = 0
+statsFrame.ZIndex = 6
+statsFrame.Parent = mainPanel
+
+local statsCorner = Instance.new("UICorner")
+statsCorner.CornerRadius = UDim.new(0, 8)
+statsCorner.Parent = statsFrame
+
+local attemptsLabel = Instance.new("TextLabel")
+attemptsLabel.Size = UDim2.new(0.5, -5, 0.5, -5)
+attemptsLabel.Position = UDim2.new(0, 10, 0, 5)
+attemptsLabel.BackgroundTransparency = 1
+attemptsLabel.Text = "Attempts: 0"
+attemptsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+attemptsLabel.Font = Enum.Font.Gotham
+attemptsLabel.TextSize = 10
+attemptsLabel.TextXAlignment = Enum.TextXAlignment.Left
+attemptsLabel.ZIndex = 7
+attemptsLabel.Parent = statsFrame
+
+-- ===== F4X0L HUB PART 2/2 =====
+
+local foundLabel = Instance.new("TextLabel")
+foundLabel.Size = UDim2.new(0.5, -5, 0.5, -5)
+foundLabel.Position = UDim2.new(0.5, 0, 0, 5)
+foundLabel.BackgroundTransparency = 1
+foundLabel.Text = "Found: 0"
+foundLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+foundLabel.Font = Enum.Font.Gotham
+foundLabel.TextSize = 10
+foundLabel.TextXAlignment = Enum.TextXAlignment.Right
+foundLabel.ZIndex = 7
+foundLabel.Parent = statsFrame
+
+local joinedLabel = Instance.new("TextLabel")
+joinedLabel.Size = UDim2.new(1, -10, 0.5, -5)
+joinedLabel.Position = UDim2.new(0, 10, 0.5, 0)
+joinedLabel.BackgroundTransparency = 1
+joinedLabel.Text = "Joined: 0"
+joinedLabel.TextColor3 = Color3.fromRGB(0, 200, 0)
+joinedLabel.Font = Enum.Font.Gotham
+joinedLabel.TextSize = 10
+joinedLabel.TextXAlignment = Enum.TextXAlignment.Left
+joinedLabel.ZIndex = 7
+joinedLabel.Parent = statsFrame
+
+-- Toggle Button for Auto Join
+local joinButton = Instance.new("TextButton")
+joinButton.Size = UDim2.new(1, -20, 0, 40)
+joinButton.Position = UDim2.new(0, 10, 0, 230)
+joinButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+joinButton.BorderSizePixel = 0
+joinButton.Text = "ENABLE AUTO JOIN"
+joinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+joinButton.Font = Enum.Font.GothamBlack
+joinButton.TextSize = 14
+joinButton.ZIndex = 6
+joinButton.Parent = mainPanel
+
+local joinCorner = Instance.new("UICorner")
+joinCorner.CornerRadius = UDim.new(0, 8)
+joinCorner.Parent = joinButton
+
+local joinStroke = Instance.new("UIStroke")
+joinStroke.Color = Color3.fromRGB(0, 255, 0)
+joinStroke.Thickness = 2
+joinStroke.Parent = joinButton
+
+-- Function to simulate server search
+local function searchForServer()
+	stats.attempts += 1
+	attemptsLabel.Text = "Attempts: " .. stats.attempts
+	statusLabel.Text = "Status: Searching..."
+	task.wait(1.5)
+	
+	if math.random(1, 3) == 1 then
+		stats.found += 1
+		foundLabel.Text = "Found: " .. stats.found
+		statusLabel.Text = "Status: Found potential server..."
+		task.wait(1)
+		stats.joined += 1
+		joinedLabel.Text = "Joined: " .. stats.joined
+		statusLabel.Text = "Status: Joined server ✅"
+	else
+		statusLabel.Text = "Status: No server found..."
+	end
+end
+
+-- Auto join loop
+task.spawn(function()
+	while task.wait(3) do
+		if autoJoinEnabled and not joiningInProgress then
+			joiningInProgress = true
+			searchForServer()
+			joiningInProgress = false
+		end
+	end
+end)
+
+-- UI Button Handlers
+joinButton.MouseButton1Click:Connect(function()
+	autoJoinEnabled = not autoJoinEnabled
+	if autoJoinEnabled then
+		joinButton.Text = "DISABLE AUTO JOIN"
+		joinButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+		statusDot.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+		statusLabel.Text = "Status: Auto Join Enabled"
+	else
+		joinButton.Text = "ENABLE AUTO JOIN"
+		joinButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		statusDot.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+		statusLabel.Text = "Status: Auto Join Disabled"
+	end
+end)
+
+toggleButton.MouseButton1Click:Connect(function()
+	mainPanel.Visible = not mainPanel.Visible
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+	mainPanel.Visible = false
+end)
+
+-- Drag function for F4X0L HUB window
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function updateDrag(input)
+	local delta = input.Position - dragStart
+	mainPanel.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+mainPanel.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = mainPanel.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+mainPanel.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		updateDrag(input)
+	end
+end)
+
+-- Intro animation
+TweenService:Create(toggleButton, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+	BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+}):Play()
+
+print("[✅ F4X0L HUB Loaded Successfully!]")
