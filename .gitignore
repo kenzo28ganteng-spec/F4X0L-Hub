@@ -99,40 +99,6 @@ hubLogo.BackgroundTransparency = 1
 hubLogo.Text = "F4X0L HUB PREMIUM"
 hubLogo.TextColor3 = Color3.fromRGB(0, 255, 0)
 hubLogo.Font = Enum.Font.GothamBlack
-hubLogo.TextSize = 18
-hubLogo.TextStrokeTransparency = 0
-hubLogo.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-hubLogo.ZIndex = 7
-hubLogo.Parent = header
-
-local hubSubtitle = Instance.new("TextLabel")
-hubSubtitle.Size = UDim2.new(1, 0, 0, 20)
-hubSubtitle.Position = UDim2.new(0, 0, 0, 45)
-hubSubtitle.BackgroundTransparency = 1
-hubSubtitle.Text = "10M+ INCOME AUTO JOINER"
-hubSubtitle.TextColor3 = Color3.fromRGB(200, 255, 200)
-hubSubtitle.Font = Enum.Font.GothamBold
-hubSubtitle.TextSize = 10
-hubSubtitle.ZIndex = 7
-hubSubtitle.Parent = header
-
--- Close button
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 25, 0, 25)
-closeButton.Position = UDim2.new(1, -30, 0, 10)
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-closeButton.BorderSizePixel = 0
-closeButton.Text = "×"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.Font = Enum.Font.GothamBold
-closeButton.TextSize = 16
-closeButton.ZIndex = 7
-closeButton.Parent = header
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 4)
-closeCorner.Parent = closeButton
-
 -- Server filter info
 local filterFrame = Instance.new("Frame")
 filterFrame.Size = UDim2.new(1, -20, 0, 40)
