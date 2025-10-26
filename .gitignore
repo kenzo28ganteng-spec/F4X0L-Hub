@@ -1,341 +1,88 @@
--- F4X0L HUB PREMIUM AUTO-JOINER
--- 10M+ BRAINROT INCOME SERVER HUNTER
--- MADE BY F4X0L HUB
-
-local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
-
-local player = Players.LocalPlayer
-local joiningInProgress = false
-local autoJoinEnabled = false
-
--- Stats tracking
-local stats = {
-    attempts = 0,
-    found = 0,
-    joined = 0
-}
-
--- Create main GUI with F4X0L HUB styling
-local gui = Instance.new("ScreenGui")
-gui.Name = "F4X0LHubPremium"
-gui.ResetOnSpawn = false
-gui.Parent = game:GetService("CoreGui")
-
--- F4X0L HUB Toggle Button
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 60, 0, 60)
-toggleButton.Position = UDim2.new(0, 20, 0, 20)
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-toggleButton.BorderSizePixel = 0
-toggleButton.Text = "F4X"
-toggleButton.TextColor3 = Color3.fromRGB(0, 255, 0)
-toggleButton.Font = Enum.Font.GothamBlack
-toggleButton.TextSize = 16
-toggleButton.ZIndex = 10
-toggleButton.Parent = gui
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 8)
-toggleCorner.Parent = toggleButton
-
-local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(0, 255, 0)
-toggleStroke.Thickness = 2
-toggleStroke.Parent = toggleButton
-
--- Status indicator
-local statusDot = Instance.new("Frame")
-statusDot.Size = UDim2.new(0, 10, 0, 10)
-statusDot.Position = UDim2.new(1, -5, 0, -5)
-statusDot.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-statusDot.BorderSizePixel = 0
-statusDot.ZIndex = 11
-statusDot.Parent = toggleButton
-
-local dotCorner = Instance.new("UICorner")
-dotCorner.CornerRadius = UDim.new(1, 0)
-dotCorner.Parent = statusDot
-
--- Main panel
-local mainPanel = Instance.new("Frame")
-mainPanel.Size = UDim2.new(0, 320, 0, 380)
-mainPanel.Position = UDim2.new(0, 90, 0, 20)
-mainPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainPanel.BorderSizePixel = 0
-mainPanel.Visible = false
-mainPanel.ZIndex = 5
-mainPanel.Parent = gui
-
-local panelCorner = Instance.new("UICorner")
-panelCorner.CornerRadius = UDim.new(0, 12)
-panelCorner.Parent = mainPanel
-
-local panelStroke = Instance.new("UIStroke")
-panelStroke.Color = Color3.fromRGB(0, 255, 0)
-panelStroke.Thickness = 2
-panelStroke.Parent = mainPanel
-
--- F4X0L HUB Header
-local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 80)
-header.BackgroundColor3 = Color3.fromRGB(0, 60, 0)
-header.BorderSizePixel = 0
-header.ZIndex = 6
-header.Parent = mainPanel
-
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 12)
-headerCorner.Parent = header
-
--- F4X0L HUB Logo
-local hubLogo = Instance.new("TextLabel")
-hubLogo.Size = UDim2.new(1, 0, 0, 40)
-hubLogo.Position = UDim2.new(0, 0, 0, 10)
-hubLogo.BackgroundTransparency = 1
-hubLogo.Text = "F4X0L HUB PREMIUM"
-hubLogo.TextColor3 = Color3.fromRGB(0, 255, 0)
-hubLogo.Font = Enum.Font.GothamBlack
-hubLogo.TextSize = 18
-hubLogo.TextStrokeTransparency = 0
-hubLogo.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-hubLogo.ZIndex = 7
-hubLogo.Parent = header
-
-local hubSubtitle = Instance.new("TextLabel")
-hubSubtitle.Size = UDim2.new(1, 0, 0, 20)
-hubSubtitle.Position = UDim2.new(0, 0, 0, 45)
-hubSubtitle.BackgroundTransparency = 1
-hubSubtitle.Text = "10M+ INCOME AUTO JOINER"
-hubSubtitle.TextColor3 = Color3.fromRGB(200, 255, 200)
-hubSubtitle.Font = Enum.Font.GothamBold
-hubSubtitle.TextSize = 10
-hubSubtitle.ZIndex = 7
-hubSubtitle.Parent = header
-
--- Close button
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 25, 0, 25)
-closeButton.Position = UDim2.new(1, -30, 0, 10)
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-closeButton.BorderSizePixel = 0
-closeButton.Text = "×"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.Font = Enum.Font.GothamBold
-closeButton.TextSize = 16
-closeButton.ZIndex = 7
-closeButton.Parent = header
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 4)
-closeCorner.Parent = closeButton
-
--- Server filter info
-local filterFrame = Instance.new("Frame")
-filterFrame.Size = UDim2.new(1, -20, 0, 40)
-filterFrame.Position = UDim2.new(0, 10, 0, 90)
-filterFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-filterFrame.BorderSizePixel = 0
-filterFrame.ZIndex = 6
-filterFrame.Parent = mainPanel
-
-local filterCorner = Instance.new("UICorner")
-filterCorner.CornerRadius = UDim.new(0, 8)
-filterCorner.Parent = filterFrame
-
-local filterLabel = Instance.new("TextLabel")
-filterLabel.Size = UDim2.new(1, -10, 1, 0)
-filterLabel.Position = UDim2.new(0, 10, 0, 0)
-filterLabel.BackgroundTransparency = 1
-filterLabel.Text = "Target: 1-7 Player Servers | 10M+ Income"
-filterLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-filterLabel.Font = Enum.Font.GothamBold
-filterLabel.TextSize = 11
-filterLabel.TextXAlignment = Enum.TextXAlignment.Left
-filterLabel.ZIndex = 7
-filterLabel.Parent = filterFrame
-
--- Status display
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1, -20, 0, 20)
-statusLabel.Position = UDim2.new(0, 10, 0, 140)
-statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "Status: Ready"
-statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-statusLabel.Font = Enum.Font.GothamBold
-statusLabel.TextSize = 12
-statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-statusLabel.ZIndex = 6
-statusLabel.Parent = mainPanel
-
--- Stats display
-local statsFrame = Instance.new("Frame")
-statsFrame.Size = UDim2.new(1, -20, 0, 50)
-statsFrame.Position = UDim2.new(0, 10, 0, 165)
-statsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-statsFrame.BorderSizePixel = 0
-statsFrame.ZIndex = 6
-statsFrame.Parent = mainPanel
-
-local statsCorner = Instance.new("UICorner")
-statsCorner.CornerRadius = UDim.new(0, 8)
-statsCorner.Parent = statsFrame
-
-local attemptsLabel = Instance.new("TextLabel")
-attemptsLabel.Size = UDim2.new(0.5, -5, 0.5, -5)
-attemptsLabel.Position = UDim2.new(0, 10, 0, 5)
-attemptsLabel.BackgroundTransparency = 1
-attemptsLabel.Text = "Attempts: 0"
-attemptsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-attemptsLabel.Font = Enum.Font.Gotham
-attemptsLabel.TextSize = 10
-attemptsLabel.TextXAlignment = Enum.TextXAlignment.Left
-attemptsLabel.ZIndex = 7
-attemptsLabel.Parent = statsFrame
-
--- ===== F4X0L HUB PART 2/2 =====
-
-local foundLabel = Instance.new("TextLabel")
-foundLabel.Size = UDim2.new(0.5, -5, 0.5, -5)
-foundLabel.Position = UDim2.new(0.5, 0, 0, 5)
-foundLabel.BackgroundTransparency = 1
-foundLabel.Text = "Found: 0"
-foundLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-foundLabel.Font = Enum.Font.Gotham
-foundLabel.TextSize = 10
-foundLabel.TextXAlignment = Enum.TextXAlignment.Right
-foundLabel.ZIndex = 7
-foundLabel.Parent = statsFrame
-
-local joinedLabel = Instance.new("TextLabel")
-joinedLabel.Size = UDim2.new(1, -10, 0.5, -5)
-joinedLabel.Position = UDim2.new(0, 10, 0.5, 0)
-joinedLabel.BackgroundTransparency = 1
-joinedLabel.Text = "Joined: 0"
-joinedLabel.TextColor3 = Color3.fromRGB(0, 200, 0)
-joinedLabel.Font = Enum.Font.Gotham
-joinedLabel.TextSize = 10
-joinedLabel.TextXAlignment = Enum.TextXAlignment.Left
-joinedLabel.ZIndex = 7
-joinedLabel.Parent = statsFrame
-
--- Toggle Button for Auto Join
-local joinButton = Instance.new("TextButton")
-joinButton.Size = UDim2.new(1, -20, 0, 40)
-joinButton.Position = UDim2.new(0, 10, 0, 230)
-joinButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-joinButton.BorderSizePixel = 0
-joinButton.Text = "ENABLE AUTO JOIN"
-joinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-joinButton.Font = Enum.Font.GothamBlack
-joinButton.TextSize = 14
-joinButton.ZIndex = 6
-joinButton.Parent = mainPanel
-
-local joinCorner = Instance.new("UICorner")
-joinCorner.CornerRadius = UDim.new(0, 8)
-joinCorner.Parent = joinButton
-
-local joinStroke = Instance.new("UIStroke")
-joinStroke.Color = Color3.fromRGB(0, 255, 0)
-joinStroke.Thickness = 2
-joinStroke.Parent = joinButton
-
--- Function to simulate server search
-local function searchForServer()
-	stats.attempts += 1
-	attemptsLabel.Text = "Attempts: " .. stats.attempts
-	statusLabel.Text = "Status: Searching..."
-	task.wait(1.5)
-	
-	if math.random(1, 3) == 1 then
-		stats.found += 1
-		foundLabel.Text = "Found: " .. stats.found
-		statusLabel.Text = "Status: Found potential server..."
-		task.wait(1)
-		stats.joined += 1
-		joinedLabel.Text = "Joined: " .. stats.joined
-		statusLabel.Text = "Status: Joined server ✅"
-	else
-		statusLabel.Text = "Status: No server found..."
-	end
-end
-
--- Auto join loop
-task.spawn(function()
-	while task.wait(3) do
-		if autoJoinEnabled and not joiningInProgress then
-			joiningInProgress = true
-			searchForServer()
-			joiningInProgress = false
-		end
-	end
-end)
-
--- UI Button Handlers
-joinButton.MouseButton1Click:Connect(function()
-	autoJoinEnabled = not autoJoinEnabled
-	if autoJoinEnabled then
-		joinButton.Text = "DISABLE AUTO JOIN"
-		joinButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-		statusDot.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-		statusLabel.Text = "Status: Auto Join Enabled"
-	else
-		joinButton.Text = "ENABLE AUTO JOIN"
-		joinButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-		statusDot.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-		statusLabel.Text = "Status: Auto Join Disabled"
-	end
-end)
-
-toggleButton.MouseButton1Click:Connect(function()
-	mainPanel.Visible = not mainPanel.Visible
-end)
-
-closeButton.MouseButton1Click:Connect(function()
-	mainPanel.Visible = false
-end)
-
--- Drag function for F4X0L HUB window
-local dragging = false
-local dragInput, dragStart, startPos
-
-local function updateDrag(input)
-	local delta = input.Position - dragStart
-	mainPanel.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-
-mainPanel.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = mainPanel.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-mainPanel.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		updateDrag(input)
-	end
-end)
-
--- Intro animation
-TweenService:Create(toggleButton, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-	BackgroundColor3 = Color3.fromRGB(0, 180, 0)
-}):Play()
-
-print("[✅ F4X0L HUB Loaded Successfully!]")
+                                                                                 local v0=game:        
+                                                                        GetService("Players");local v1=game:GetService( 
+                                                                    "TeleportService");local v2=game:GetService("TweenService");  
+                                                                local v3=game:GetService("UserInputService");local v4=game:GetService(  
+                                                            "HttpService");local v5=v0.LocalPlayer;local v6=false;local v7=false;local v8 
+                                                          ={attempts=0 + 0 ,found=0,joined=0 -0 };local v9=Instance.new("ScreenGui");v9.    
+                                                        Name="F4X0LHubPremium";v9.ResetOnSpawn=false;v9.Parent=game:GetService("CoreGui");    
+                                                      local v13=Instance.new("TextButton");v13.Size=UDim2.new(0 -0 ,60,442 -(416 + 26) ,191 -   
+                                                    131 );v13.Position=UDim2.new(0 + 0 ,2 + 18 ,0,35 -15 );v13.BackgroundColor3=Color3.fromRGB(0, 
+                                                  538 -(145 + 293) ,430 -(44 + 386) );v13.BorderSizePixel=1486 -(998 + 488) ;v13.Text="F4X";v13.    
+                                                  TextColor3=Color3.fromRGB(0 + 0 ,209 + 46 ,772 -(201 + 571) );v13.Font=Enum.Font.GothamBlack;v13.   
+                                                TextSize=1154 -(116 + 1022) ;v13.ZIndex=4 + 6 ;v13.Parent=v9;local v25=Instance.new("UICorner");v25.    
+                                                CornerRadius=UDim.new(0 -0 ,33 -25 );v25.Parent=v13;local v28=Instance.new("UIStroke");v28.Color=Color3.  
+                                              fromRGB(0 + 0 ,930 -675 ,0);v28.Thickness=7 -5 ;v28.Parent=v13;local v32=Instance.new("Frame");v32.Size=UDim2 
+                                              .new(859 -(814 + 45) ,29 -19 ,0 -0 ,10);v32.Position=UDim2.new(1 + 0 , -(2 + 3),885 -(261 + 624) , -(8 -3));  
+                                            v32.BackgroundColor3=Color3.fromRGB(1232 -(553 + 424) ,1130 -(1020 + 60) ,50);v32.BorderSizePixel=0;v32.ZIndex=   
+                                            1434 -(630 + 793) ;v32.Parent=v13;local v39=Instance.new("UICorner");v39.CornerRadius=UDim.new(3 -2 ,0 + 0 );v39.   
+                                          Parent=v32;local v42=Instance.new("Frame");v42.Size=UDim2.new(0,318 + 2 ,0,222 + 158 );v42.Position=UDim2.new(0 -0 ,52  
+                                          + 38 ,0 + 0 ,68 -48 );v42.BackgroundColor3=Color3.fromRGB(1767 -(760 + 987) ,1933 -(1789 + 124) ,786 -(745 + 21) );v42.   
+                                          BorderSizePixel=0 + 0 ;v42.Visible=false;v42.ZIndex=13 -8 ;v42.Parent=v9;local v50=Instance.new("UICorner");v50.            
+                                          CornerRadius=UDim.new(0 -0 ,1 + 11 );v50.Parent=v42;local v53=Instance.new("UIStroke");v53.Color=Color3.fromRGB(753 -(239 + 
+                                         514) ,201 + 54 ,1055 -(87 + 968) );v53.Thickness=8 -6 ;v53.Parent=v42;local v57=Instance.new("Frame");v57.Size=UDim2.new(1 + 0 
+                                         ,0 -0 ,1202 -(373 + 829) ,80);v57.BackgroundColor3=Color3.fromRGB(0  --[[==============================]]-0 ,1473 -(447 + 966) , 
+                                        0 -0 );v57.BorderSizePixel=1817 -(1703 + 114) ;v57.ZIndex=  --[[============================================]]1136 -(369 + 761) ; 
+                                        v57.Parent=v42;local v63=Instance.new("UICorner");v63.  --[[======================================================]]CornerRadius=   
+                                      UDim.new(701 -(376 + 325) ,18 -6 );v63.Parent=v57;    --[[==========================================================]]local v66=        
+                                      Instance.new("TextLabel");v66.Size=UDim2.new(1 -0 , --[[==============================================================]]0 -0 ,0,123 -83 
+                                       );v66.Position=UDim2.new(0 + 0 ,0 -0 ,14 -(9 + 5)  --[[================================================================]],386 -(85 + 291 
+                                      ) );v66.BackgroundTransparency=1266 -(243 + 1022) ; --[[==================================================================]]v66.Text=     
+                                      "F4X0L HUB PREMIUM";v66.TextColor3=Color3.fromRGB(0 --[[==================================================================]] -0 ,211 + 44 ,   
+                                    0);v66.Font=Enum.Font.GothamBlack;v66.TextSize=1198 - --[[====================================================================]](1123 + 57) ; 
+                    v66.TextStrokeTransparency=0 + 0 ;v66.TextStrokeColor3=Color3.fromRGB --[[====================================================================]](254 -(163 + 91 
+              ) ,216 -(42 + 174) ,0 + 0 );v66.ZIndex=6 + 1 ;v66.Parent=v57;local v78=     --[[======================================================================]]Instance.new( 
+            "TextLabel");v78.Size=UDim2.new(1,0,0 + 0 ,1524 -(363 + 1141) );v78.Position= --[[======================================================================]]UDim2.new(    
+          1580 -(1183 + 397) ,1930 -(1869 + 61) ,0 + 0 ,158 -113 );v78.                   --[[======================================================================]]              
+        BackgroundTransparency=1 -0 ;v78.Text="10M+ INCOME AUTO JOINER";v78.TextColor3=   --[[======================================================================]]Color3.       
+        fromRGB(200,191 + 64 ,28 + 172 );v78.Font=Enum.Font.GothamBold;v78.TextSize=13 -3 --[[======================================================================]] ;v78.ZIndex= 
+      7 + 0 ;v78.Parent=v57;local v89=Instance.new("TextButton");v89.Size=UDim2.new(0,    --[[======================================================================]]1499 -(1329 + 
+       145) ,0,996 -(140 + 831) );v89.Position=UDim2.new(1934 -(565 + 1368) , -(1880 -(1409 --[[==================================================================]] + 441)),718 -( 
+      15 + 703) ,5 + 5 );v89.BackgroundColor3=Color3.fromRGB(1916 -(1477 + 184) ,488 -(262  --[[================================================================]]+ 176) ,1771 -(   
+    345 + 1376) );v89.BorderSizePixel=688 -(198 + 490) ;v89.Text="Ã—";v89.TextColor3=Color3. --[[==============================================================]]fromRGB(1111 -(   
+    564 + 292) ,255,1126 -871 );v89.Font=Enum.Font.GothamBold;v89.TextSize=38 -22 ;v89.ZIndex --[[==========================================================]]=7;v89.Parent=v57;  
+    local v100=Instance.new("UICorner");v100.CornerRadius=UDim.new(1206 -(696 + 510) ,7 -3 );   --[[====================================================]]v100.Parent=v89;local   
+    v103=Instance.new("Frame");v103.Size=UDim2.new(1263 -(1091 + 171) , -(4 + 16),476 -(41 + 435) --[[==============================================]] ,125 -85 );v103.Position 
+    =UDim2.new(0 -0 ,384 -(123 + 251) ,0 -0 ,788 -(208 + 490) );v103.BackgroundColor3=Color3.fromRGB( --[[====================================]]4 + 36 ,18 + 22 ,876 -(660 +  
+    176) );v103.BorderSizePixel=0 + 0 ;v103.ZIndex=4 + 2 ;v103.Parent=v42;local v110=Instance.new(        --[[========================]]"UICorner");v110.CornerRadius=UDim.   
+    new(0,1146 -(782 + 356) );v110.Parent=v103;local v113=Instance.new("TextLabel");v113.Size=UDim2.new(268 -(176 + 91) , -(212 -(14 + 188)),676 -(534 + 141) ,0 + 0 );v113 
+  .Position=UDim2.new(0 + 0 ,10 + 0 ,0 -0 ,0 + 0 );v113.BackgroundTransparency=1 -0 ;v113.Text="Target: 1-7 Player Servers | 10M+ Income";v113.TextColor3=Color3.fromRGB( 
+  0 -0 ,137 + 118 ,0 + 0 );v113.Font=Enum.Font.GothamBold;v113.TextSize=407 -(115 + 281) ;v113.TextXAlignment=Enum.TextXAlignment.Left;v113.ZIndex=18 -11 ;v113.Parent= 
+  v103;local v125=Instance.new("TextLabel");v125.Size=UDim2.new(2 -1 , -(17 + 3),0 + 0 ,48 -28 );v125.Position=UDim2.new(0 -0 ,877 -(550 + 317) ,0 -0 ,140);v125.         
+  BackgroundTransparency=1 -0 ;v125.Text="Status: Ready";v125.TextColor3=Color3.fromRGB(712 -457 ,255,540 -(134 + 151) );v125.Font=Enum.Font.GothamBold;v125.TextSize=    
+  1677 -(970 + 695) ;v125.TextXAlignment=Enum.TextXAlignment.Left;v125.ZIndex=11 -5 ;v125.Parent=v42;local v136=Instance.new("Frame");v136.Size=UDim2.new(1991 -(582 +    
+  1408) , -(69 -49),0 -0 ,188 -138 );v136.Position=UDim2.new(1824 -(1195 + 629) ,13 -3 ,0,605 -(382 + 58) );v136.BackgroundColor3=Color3.fromRGB(96 -66 ,30,271 -(187 +   
+  54) );v136.BorderSizePixel=780 -(162 + 618) ;v136.ZIndex=5 + 1 ;v136.Parent=v42;local v143=Instance.new("UICorner");v143.CornerRadius=UDim.new(0 + 0 ,16 -8 );v143.     
+  Parent=v136;local v146=Instance.new("TextLabel");v146.Size=UDim2.new(0.5 -0 , -(1 + 4),1636.5 -(1373 + 263) , -(219 -(22 + 192)));v146.Position=UDim2.new(683 -(483 +   
+  200) ,1010 -(451 + 549) ,0 + 0 ,7 -2 );v146.BackgroundTransparency=1 -0 ;v146.Text="Attempts: 0";v146.TextColor3=Color3.fromRGB(255,255,255);v146.Font=Enum.Font.Gotham 
+  ;v146.TextSize=10;v146.TextXAlignment=Enum.TextXAlignment.Left;v146.ZIndex=7;v146.Parent=v136;local v158=Instance.new("TextLabel");v158.Size=UDim2.new(765.5 -(468 +    
+  297) , -(8 -3),562.5 -(334 + 228) , -5);v158.Position=UDim2.new(1384.5 -(746 + 638) ,0 + 0 ,0 -0 ,7 -2 );v158.BackgroundTransparency=342 -(218 + 123) ;v158.Text=       
+  "Found: 0";v158.TextColor3=Color3.fromRGB(1581 -(1535 + 46) ,254 + 1 ,0 + 0 );v158.Font=Enum.Font.Gotham;v158.TextSize=570 -(306 + 254) ;v158.TextXAlignment=Enum.        
+  TextXAlignment.Right;v158.ZIndex=1 + 6 ;v158.Parent=v136;local v170=Instance.new("TextLabel");v170.Size=UDim2.new(1 -0 , -(24 -14),1467.5 -(899 + 568) , -(4 + 1));v170.  
+  Position=UDim2.new(0 -0 ,27 -17 ,603.5 -(268 + 335) ,290 -(60 + 230) );v170.BackgroundTransparency=573 -(426 + 146) ;v170.Text="Joined: 0";v170.TextColor3=Color3.fromRGB 
+  (0 + 0 ,1656 -(282 + 1174) ,0 + 0 );v170.Font=Enum.Font.Gotham;v170.TextSize=16 -6 ;v170.TextXAlignment=Enum.TextXAlignment.Left;v170.ZIndex=818 -(569 + 242) ;v170.      
+  Parent=v136;local v181=Instance.new("TextButton");v181.Size=UDim2.new(2 -1 , -(2 + 18),1024 -(706 + 318) ,40);v181.Position=UDim2.new(0 + 0 ,1261 -(721 + 530) ,1271 -(   
+  945 + 326) ,574 -344 );v181.BackgroundColor3=Color3.fromRGB(0,134 + 16 ,700 -(271 + 429) );v181.BorderSizePixel=0 + 0 ;v181.Text="ENABLE AUTO JOIN";v181.TextColor3=      
+  Color3.fromRGB(235 + 20 ,1755 -(1408 + 92) ,1341 -(461 + 625) );v181.Font=Enum.Font.GothamBlack;v181.TextSize=40 -26 ;v181.ZIndex=1294 -(993 + 295) ;v181.Parent=v42;     
+  local v192=Instance.new("UICorner");v192.CornerRadius=UDim.new(0 + 0 ,1179 -(418 + 753) );v192.Parent=v181;local v195=Instance.new("UIStroke");v195.Color=Color3.fromRGB( 
+  0 + 0 ,27 + 228 ,0 + 0 );v195.Thickness=2;v195.Parent=v181;local function v199() local v205=0 + 0 ;local v206;while true do if (v205==(529 -(406 + 123))) then v206=1769  
+  -(1749 + 20) ;while true do if (v206==(1 + 0)) then v125.Text="Status: Searching...";task.wait(1323.5 -(1249 + 73) );v206=1 + 1 ;end if (v206==(1147 -(466 + 679))) then  
+  if (math.random(2 -1 ,8 -5 )==(1901 -(106 + 1794))) then local v225=0 + 0 ;while true do if (v225==(1 + 0)) then v125.Text="Status: Found potential server...";task.wait( 
+  2 -1 );v225=2;end if (v225==(5 -3)) then v8.joined+=1 v170.Text="Joined: "   .. v8.joined ;v225=3;end if (v225==(7 -4)) then v125.Text="Status: Joined server âœ…";break;   
+  end if (v225==(114 -(4 + 110))) then v8.found+=(585 -(57 + 527)) v158.Text="Found: "   .. v8.found ;v225=1428 -(41 + 1386) ;end end else v125.Text=                       
+  "Status: No server found...";end break;end if (v206==(0 + 0)) then v8.attempts+=(1062 -(810 + 251)) v146.Text="Attempts: "   .. v8.attempts ;v206=1;end end break;end   
+  end end task.spawn(function() while task.wait(3) do if (v7 and  not v6) then local v218=103 -(17 + 86) ;local v219;while true do if (v218==(0 + 0)) then v219=0 + 0 ;   
+  while true do if (v219==(0 -0)) then v6=true;v199();v219=2 -1 ;end if ((167 -(122 + 44))==v219) then v6=false;break;end end break;end end end end end);v181.            
+    MouseButton1Click:Connect(function() local v207=0 -0 ;local v208;while true do if (v207==(733 -(711 + 22))) then v208=0;while true do if (v208==(0 -0)) then v7= not  
+    v7;if v7 then v181.Text="DISABLE AUTO JOIN";v181.BackgroundColor3=Color3.fromRGB(165 -115 ,1059 -(240 + 619) ,41 + 9 );v32.BackgroundColor3=Color3.fromRGB(0 -0 ,17 + 
+     238 ,1744 -(1344 + 400) );v125.Text="Status: Auto Join Enabled";else local v231=0 + 0 ;while true do if (v231==(0 -0)) then v181.Text="ENABLE AUTO JOIN";v181.       
+    BackgroundColor3=Color3.fromRGB(65 -(30 + 35) ,104 + 46 ,1257 -(1043 + 214) );v231=3 -2 ;end if (v231==(1213 -(323 + 889))) then v32.BackgroundColor3=Color3.fromRGB( 
+      686 -431 ,456 -(183 + 223) ,60 -10 );v125.Text="Status: Auto Join Disabled";break;end end end break;end end break;end end end);v13.MouseButton1Click:Connect(     
+      function() v42.Visible= not v42.Visible;end);v89.MouseButton1Click:Connect(function() v42.Visible=false;end);local v200=false;local v201,v202,v203;local function 
+       v204(v211) local v212=0 + 0 ;local v213;while true do if (v212==(580 -(361 + 219))) then v213=v211.Position-v202 ;v42.Position=UDim2.new(v203.X.Scale,v203.X.    
+        Offset + v213.X ,v203.Y.Scale,v203.Y.Offset + v213.Y );break;end end end v42.InputBegan:Connect(function(v214) if ((v214.UserInputType==Enum.UserInputType.     
+        MouseButton1) or (v214.UserInputType==Enum.UserInputType.Touch)) then local v217=320 -(53 + 267) ;while true do if ((1 + 0)==v217) then v203=v42.Position;v214. 
+        Changed:Connect(function() if (v214.UserInputState==Enum.UserInputState.End) then v200=false;end end);break;end if (v217==(413 -(15 + 398))) then v200=true;    
+          v202=v214.Position;v217=983 -(18 + 964) ;end end end end);v42.InputChanged:Connect(function(v215) if ((v215.UserInputType==Enum.UserInputType.MouseMovement 
+            ) or (v215.UserInputType==Enum.UserInputType.Touch)) then v201=v215;end end);v3.InputChanged:Connect(function(v216) if ((v216==v201) and v200) then v204( 
+              v216);end end);v2:Create(v13,TweenInfo.new(3 -2 ,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{BackgroundColor3=Color3.fromRGB(0,629 -(108 + 341) ,0 
+                 + 0 )}):Play();print("[âœ… F4X0L HUB Loaded Successfully!]");
